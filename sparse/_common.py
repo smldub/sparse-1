@@ -1129,7 +1129,7 @@ def _dot_coo_ndarray_type_sparse(dt1, dt2):
 def _dot_ndarray_coo_type(dt1, dt2):
     dtr = _dot_dtype(dt1, dt2)
 
-    @numba.jit(nopython=True, nogil=True)
+    @numba.jit(nopython=True, nogil=True, parallel=True)
     def _dot_ndarray_coo(array1, coords2, data2, out_shape):  # pragma: no cover
         """
         Utility function taking in two one ``ndarray`` and one ``COO`` and
@@ -1145,8 +1145,7 @@ def _dot_ndarray_coo_type(dt1, dt2):
             The output shape.
         """
         out = np.zeros(out_shape, dtype=dtr)
-
-        for oidx1 in range(out_shape[0]):
+        for oidx1 in numba.prange(out_shape[0]):
             for didx2 in range(len(data2)):
                 oidx2 = coords2[1, didx2]
                 out[oidx1, oidx2] += array1[oidx1, coords2[0, didx2]] * data2[didx2]
